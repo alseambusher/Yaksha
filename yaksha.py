@@ -1,18 +1,9 @@
+import pexif
 import tensorflow as tf
 import numpy as np
-import tensorflow.python.platform
-import os.path
-import sys
 import re
 from tensorflow.python.platform import gfile
-
-MODEL_DIR = "imagenet/"
-NUM_PREDICTIONS = 5
-label_lookup_path = os.path.join(
-  MODEL_DIR, 'imagenet_2012_challenge_label_map_proto.pbtxt')
-uid_lookup_path = os.path.join(
-  MODEL_DIR, 'imagenet_synset_to_human_label_map.txt')
-graph_file = os.path.join(MODEL_DIR, "classify_image_graph_def.pb")
+from config import *
 
 
 class Lookup(object):
@@ -54,9 +45,6 @@ class Lookup(object):
 
 
 def main(_):
-  # image root folder
-  # root_folder = sys.argv[1]
-
   # read graph
   with gfile.FastGFile(graph_file, "rb") as f:
     graph_def = tf.GraphDef()
@@ -71,13 +59,12 @@ def main(_):
   # iterate through all the images
   # if a folder has a file called .nomedia then ignore the folder and its sub folders
 
-  for root, subFolders, files in os.walk("testing"):
+  for root, subFolders, files in os.walk(IMAGES_ROOT):
     if ".nomedia" in files:
       continue
 
     for _file in files:
-      if os.path.splitext(_file)[1] in [".jpg", ".jpeg", ".png"]:
-        print _file
+      if os.path.splitext(_file)[1] in [".jpg", ".jpeg"]:
         image_data = gfile.FastGFile(os.path.join(root, _file), "rb").read()
         pretictions = session.run(softmax_tensor, {"DecodeJpeg/contents:0": image_data})
         pretictions = np.squeeze(pretictions)
@@ -85,19 +72,13 @@ def main(_):
         # take top 5 predictions
         result = []
         for _id in pretictions.argsort()[-NUM_PREDICTIONS:][::-1]:
-          result.append(lookup.id_to_string(_id))
+          result.append(lookup.id_to_string(_id).replace(",", " "))
 
         result = " ".join(result)
-        print result
-        # TODO add this to header
-
+        print os.path.join(root, _file), "=>", result
+        img = pexif.JpegFile.fromFile(os.path.join(root, _file))
+        img.exif.primary.ImageDescription = result
+        img.writeFile(os.path.join(root, _file))
 
 if __name__ == "__main__":
-  # root_folder = sys.argv[1]
-  # print root_folder
   tf.app.run()
-
-
-
-
-
