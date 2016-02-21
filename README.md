@@ -12,6 +12,8 @@ Install tensorflow, pyexif and the trained model.
     wget "http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz"
     tar -xzvf inception-2015-12-05.tgz -C imagenet
     
+Then, install [Exiftool](http://www.sno.phy.queensu.ca/~phil/exiftool/)
+    
 ##Configure and run
 Set the image root directory in `config.py`
 
@@ -20,5 +22,6 @@ Set the image root directory in `config.py`
 Run Yaksha
 
     python yaksha.py
+    
 
 
